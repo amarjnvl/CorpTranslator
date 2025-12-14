@@ -4,7 +4,7 @@
   "description": "Corporate Translator SaaS Dashboard",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev": "concurrently --prefix-colors \"blue,yellow\" --names \"SERVER,CLIENT\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "install-all": "npm install && npm install --prefix server && npm install --prefix client"
   },
   "keywords": [],

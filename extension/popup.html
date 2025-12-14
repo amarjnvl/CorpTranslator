@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CorpTranslator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-slate-950 text-slate-50 w-80 p-4 font-sans">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+    <div class="flex items-center gap-2">
+      <span class="text-indigo-400 font-bold text-lg">CorpTranslator</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btn-reverse-mode" class="text-slate-500 hover:text-indigo-400 transition-colors p-1"
+        title="Toggle Reverse Mode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 10v12"></path>
+          <path d="M17 10v12"></path>
+          <path d="M17 10l-4-4-4 4"></path>
+          <path d="M7 22h10"></path>
+        </svg>
+      </button>
+      <button id="btn-settings" class="text-slate-500 hover:text-indigo-400 transition-colors" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+          </path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- View: API Key Setup -->
+  <div id="view-setup" class="hidden flex-col gap-3">
+    <p class="text-sm text-slate-400">Please enter your Google Gemini API Key to enable translations.</p>
+    <input type="password" id="input-api-key"
+      class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600"
+      placeholder="Paste API Key here..." />
+    <p class="text-xs text-slate-500">
+      Key is stored locally in your browser. <a href="https://aistudio.google.com/app/apikey" target="_blank"
+        class="text-indigo-400 hover:underline">Get a key here</a>.
+    </p>
+    <button id="btn-save-key"
+      class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded transition-colors text-sm mt-1">
+      Save API Key
+    </button>
+  </div>
+
+  <!-- View: Translator -->
+  <div id="view-translator" class="flex flex-col gap-3">
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-semibold text-slate-500 uppercase">Original Text</label>
+      <textarea id="input-text"
+        class="w-full h-24 bg-slate-900 border border-slate-700 rounded p-3 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 resize-none placeholder-slate-600"
+        placeholder="Type raw thoughts (e.g. 'That is stupid')"></textarea>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2">
+      <select id="select-tone" class="bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none">
+        <option value="Neutral">Neutral</option>
+        <option value="Helpful">Helpful</option>
+        <option value="Firm">Firm</option>
+        <option value="Ruthless">Ruthless</option>
+        <option value="C-Level">C-Level</option>
+      </select>
+      <select id="select-context"
+        class="bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none">
+        <option value="Email">Email</option>
+        <option value="Slack">Slack</option>
+        <option value="Jira">Jira</option>
+      </select>
+      <select id="select-audience"
+        class="bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none col-span-2">
+        <option value="Peer">Audience: Peer</option>
+        <option value="Manager">Audience: Manager</option>
+        <option value="Client">Audience: Client</option>
+        <option value="Executive">Audience: Executive</option>
+      </select>
+    </div>
+
+    <button id="btn-translate"
+      class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded transition-colors text-sm flex items-center justify-center gap-2">
+      <span>Translate</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </button>
+
+    <div id="output-container" class="hidden flex-col gap-2 mt-2 pt-3 border-t border-slate-800">
+      <label class="text-xs font-semibold text-slate-500 uppercase">Professional Output</label>
+      <div id="output-text" class="text-sm text-slate-100 leading-relaxed bg-slate-900/50 p-2 rounded"></div>
+      <button id="btn-copy" class="text-xs text-indigo-400 hover:text-indigo-300 self-end flex items-center gap-1 mt-1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        Copy
+      </button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

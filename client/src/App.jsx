@@ -5,6 +5,11 @@ import clsx from 'clsx';
 import Sidebar from './components/Layout/Sidebar';
 import ToneSlider from './components/Controls/ToneSlider';
 import ContextChips from './components/Controls/ContextChips';
+import ReverseMode from './components/Controls/ReverseMode';
+import QuickTemplates from './components/Controls/QuickTemplates';
+import FeedbackButtons from './components/UI/FeedbackButtons';
+import VoiceInput from './components/Controls/VoiceInput';
+import TeamSettings from './components/Settings/TeamSettings';
 import SkeletonLoader from './components/UI/SkeletonLoader';
 import Toast from './components/UI/Toast';
 import usePersistentState from './hooks/usePersistentState';
@@ -20,6 +25,9 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [isReverseMode, setIsReverseMode] = useState(false);
+  const [currentTranslationId, setCurrentTranslationId] = useState(null);
+  const [showTeamSettings, setShowTeamSettings] = useState(false);
 
   // Fetch history on mount
   const fetchHistory = useCallback(async () => {
@@ -27,7 +35,7 @@ function App() {
       const res = await axios.get('/api/history');
       setHistory(res.data);
     } catch (err) {
-      console.error('Failed to load history', err);
+      console.error('Failed to fetch history', err);
     }
   }, []);
 
@@ -44,9 +52,11 @@ function App() {
         text: inputText,
         tone: selectedTone,
         context: selectedContext,
-        audience: selectedAudience
+        audience: selectedAudience,
+        reverseMode: isReverseMode
       });
       setOutputText(res.data.translation);
+      setCurrentTranslationId(res.data.id);
       fetchHistory(); // Refresh sidebar
     } catch (err) {
       console.error('Translation error', err);
@@ -68,10 +78,15 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [inputText, selectedTone, selectedContext, selectedAudience]); // Dep array important for closure capture
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!outputText) return;
-    navigator.clipboard.writeText(outputText);
-    setShowToast(true);
+    try {
+      await navigator.clipboard.writeText(outputText);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
   };
 
   const handleRestore = (item) => {
@@ -96,6 +111,10 @@ function App() {
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-50 overflow-hidden font-sans selection:bg-indigo-500/30">
+
+      {/* Team Settings Modal */}
+      {showTeamSettings && <TeamSettings onClose={() => setShowTeamSettings(false)} />}
+
       <Sidebar
         isOpen={isSidebarOpen}
         history={history}
@@ -113,6 +132,15 @@ function App() {
       {/* Main Content */}
       <div className={clsx("flex-1 flex flex-col h-full relative transition-all duration-500", getGlowColor())}>
 
+        {/* Settings Button (Top Right) */}
+        <button
+          onClick={() => setShowTeamSettings(true)}
+          className="fixed top-6 right-6 z-20 p-2 text-slate-400 hover:text-white transition-colors"
+          title="Team Settings"
+        >
+          <Sparkles size={20} />
+        </button>
+
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
           <div className="flex items-center space-x-2">
@@ -128,15 +156,36 @@ function App() {
 
           {/* LEFT PANEL: INPUT */}
           <div className="flex-1 flex flex-col bg-slate-900 p-6 md:p-8 relative group">
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Original Text</label>
+              <div className="flex items-center gap-2">
+                <VoiceInput onTranscript={(text) => setInputText((prev) => prev ? prev + ' ' + text : text)} />
+                <button
+                  onClick={() => setInputText('')}
+                  className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                  disabled={!inputText}
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
             <textarea
               className="w-full h-full bg-transparent border-none resize-none focus:ring-0 text-lg md:text-xl text-slate-300 placeholder-slate-600 leading-relaxed"
-              placeholder="Type your raw thoughts here... (e.g., 'That idea is stupid')"
+              placeholder={isReverseMode
+                ? "Paste correct corporate speak here... (e.g. 'Let's circle back')"
+                : "Type your raw thoughts here... (e.g., 'That idea is stupid')"
+              }
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               autoFocus
             />
             <div className="absolute bottom-6 right-6 text-xs text-slate-600 pointer-events-none group-hover:text-slate-500 transition-colors">
               Cmd + Enter to translate
+            </div>
+
+            {/* Quick Templates Overlay or Bottom Panel */}
+            <div className="absolute bottom-6 left-6 right-36 z-10 w-auto">
+              <QuickTemplates onSelect={setInputText} />
             </div>
           </div>
 
@@ -176,13 +225,17 @@ function App() {
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Professional Output</span>
               {outputText && (
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center space-x-1 text-xs text-slate-500 hover:text-indigo-400 transition-colors"
-                >
-                  <Copy size={14} />
-                  <span>Copy</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <FeedbackButtons translationId={currentTranslationId} />
+                  <div className="w-px h-3 bg-slate-800"></div>
+                  <button
+                    onClick={handleCopy}
+                    className="flex items-center space-x-1 text-xs text-slate-500 hover:text-indigo-400 transition-colors"
+                  >
+                    <Copy size={14} />
+                    <span>Copy</span>
+                  </button>
+                </div>
               )}
             </div>
 
